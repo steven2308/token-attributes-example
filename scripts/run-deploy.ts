@@ -4,15 +4,17 @@ import { getRegistry } from './get-gegistry';
 import { delay, isHardhatNetwork } from './utils';
 
 async function main() {
-  await deployContracts();
+  const collection = await deployContracts();
+  await mint(collection);
 }
 
 async function deployContracts(): Promise<SimpleEquippable> {
   console.log(`Deploying SimpleEquippable to ${network.name} blockchain...`);
 
   const contractFactory = await ethers.getContractFactory('SimpleEquippable');
-  const collectionMeta = undefined; // TODO: Replace with IPFS with metadata for collection, e.g. 'ipfs://collectionMeta.json' See https://evm.rmrk.app/metadata#collection-metadata for more info on expected content
-  const maxSupply = undefined; // TODO: Replace with max supply of the collection
+  const collectionMeta =
+    'ipfs://QmadB7RnpfXSd2JX1e6HZLBKwSkBR3PiXhTmkN9dE5DKur/chunkies/collection.json';
+  const maxSupply = 1000n;
   const royaltyRecipient = (await ethers.getSigners())[0].address;
   const royaltyPercentageBps = 300; // 3%
 
@@ -23,24 +25,30 @@ async function deployContracts(): Promise<SimpleEquippable> {
     const contract: SimpleEquippable = await contractFactory.deploy(...args);
     await contract.waitForDeployment();
     const contractAddress = await contract.getAddress();
-    console.log(`SimpleEquippable deployed to ${contractAddress}.`);
+    console.log(`SimpleEquippable deployed to ${contractAddress}`);
 
     if (!isHardhatNetwork()) {
-      console.log('Waiting 10 seconds before verifying contract...');
-      delay(10000);
+      console.log('Waiting 20 seconds before verifying contract...');
+      await delay(20000);
       await run('verify:verify', {
         address: contractAddress,
         constructorArguments: args,
         contract: 'contracts/SimpleEquippable.sol:SimpleEquippable',
       });
-
-      // Only do on testing, or if whitelisted for production
-      const registry = await getRegistry();
-      await registry.addExternalCollection(contractAddress, args[0]);
-      console.log('Collection added to Singular Registry');
     }
     return contract;
   }
+}
+
+async function mint(collection: SimpleEquippable): Promise<void> {
+  console.log(`Minting 5 tokens...`);
+  const [signer] = await ethers.getSigners();
+  await collection.connect(signer).mint(
+    signer.address, // to
+    5, // amount to mint
+    'ipfs://QmadB7RnpfXSd2JX1e6HZLBKwSkBR3PiXhTmkN9dE5DKur/chunkies/full/1.json', // token URI
+  );
+  console.log(`Minted 5 tokens.`);
 }
 
 main().catch((error) => {

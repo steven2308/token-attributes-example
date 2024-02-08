@@ -68,7 +68,7 @@ pnpm hardhat emotes:bulkEmote 0x5FbDB2315678afecb367f032d93F642f64180aa3 '15,16'
 
 ## Using Token Attributes Repository (Draft feature)
 
-You can use token repositories to store your tokens. This is a draft feature so the final address will change, for now it is only deployed on a few test networks. Contact us through our implementers telegram group if you want us to deploy in another network.
+You can use token repository to store your tokens's attributes. This is a draft feature so the final address will change, for now it is only deployed on a few test networks. Contact us through our implementers telegram group if you want us to deploy in another network.
 
 To use it, you must first configure the attribute, you can do so by calling:
 
